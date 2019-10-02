@@ -19,9 +19,9 @@ $ pip install -r requirements.txt
 ## How to run
 
 ```
-Usage: main.py [OPTIONS] MODEL...
+Usage: main.py [OPTIONS] TRAINING_MODEL_TYPE...
 
-  MODEL: --unsmoothed|--laplace|--interpolation
+  TRAINING_MODEL_TYPE: --unsmoothed|--laplace|--interpolation
 
 Options:
   --debug BOOLEAN  Enable debug mode.
