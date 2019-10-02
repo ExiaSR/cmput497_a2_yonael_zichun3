@@ -5,34 +5,13 @@ import os
 import errno
 
 from language_detector.models import Model
-from typing import List
-
-
-def get_training_files():
-    (dirpath, _, filenames) = next(os.walk("data_train"))
-    filenames = sorted(filenames)
-    return [
-        {"path": os.path.join(dirpath, filename), "name": filename}
-        for filename in filenames
-        if filename.endswith("txt.tra")
-    ]
-
-
-def get_dev_files():
-    (dirpath, _, filenames) = next(os.walk("data_dev"))
-    filenames = sorted(filenames)
-    return [
-        {"path": os.path.join(dirpath, filename), "name": filename}
-        for filename in filenames
-        if filename.endswith("txt.dev")
-    ]
-
-
-def train_model(model_type, name, text):
-    model = Model.factory(model_type, name=name, text=text)
-    model.train()
-
-    return model
+from language_detector.utils import (
+    get_dev_files,
+    get_training_files,
+    train_model,
+    compute_lowest_perplexity,
+)
+from language_detector.types import Models
 
 
 # Taken from https://stackoverflow.com/a/600612/119527
@@ -76,34 +55,18 @@ def main(training_model_type, debug):
         sys.exit(1)
 
     training_model_type = training_model_type[0].replace("--", "")
-    training_files = get_training_files()
-    models: List(Model) = []
 
     # train model for each language
+    models: Models = []
+    training_files = get_training_files()
     for file in training_files:
-        with open(file["path"], "r") as input_file:
-            data = input_file.read()
-            models.append(train_model(training_model_type, file["name"], data))
+        models.append(train_model(training_model_type, file["name"], file["data"]))
 
     dev_files = get_dev_files()
     dev_results = []
     for file in dev_files:
-        # compute perplexity for each test file with each language models
-        recorded_perplexity = []
-        with open(file["path"], "r") as input_file:
-            data = input_file.read()
-            for model in models:
-                recorded_perplexity.append(model.perplexity(data))
-        best_model_idx = recorded_perplexity.index(min(recorded_perplexity))
-        best_model = models[best_model_idx]
-        dev_results.append(
-            {
-                "test_name": file["name"],
-                "model_name": best_model.name,
-                "perplexity": recorded_perplexity[best_model_idx],
-                "n": best_model.n,
-            }
-        )
+        dev_results.append(compute_lowest_perplexity(file, models))
+
     save_to_tsv(dev_results, "results_dev_{}".format(training_model_type))
 
 

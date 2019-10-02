@@ -99,12 +99,6 @@ class InterpolationModel(Model):
 
 
 def test():
-    # text = "the whale is Moby Dick"
-    # test_text = ["Moby Dick", "the whale"]
-    # model = UnsmoothedModel("moby_dick", text)
-    # model.train()
-    # for each in test_text:
-    #     print(model.perplexity(each))
     with open("data_train/udhr-eng.txt.tra", "r") as train_f, open(
         "data_dev/udhr-eng.txt.dev", "r"
     ) as dev_f:
