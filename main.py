@@ -44,30 +44,43 @@ def save_to_tsv(results, filename, output_dir="output"):
         tsv_writer.writerows(rows)
 
 
-@click.command(context_settings={"ignore_unknown_options": True})
-@click.argument("training_model_type", type=str, required=True, nargs=-1)
+@click.command()
+@click.option(
+    "--unsmoothed",
+    "training_model_type",
+    flag_value="unsmoothed",
+    help="Use unsmoothed language model.",
+)
+@click.option("--laplace", "training_model_type", flag_value="laplace", help="Use one-hot model.")
+@click.option(
+    "--interpolation",
+    "training_model_type",
+    flag_value="interpolation",
+    help="Use interpolation language model.",
+)
+@click.option("--train_dir", type=str, default="data_train", help="Path to training dataset.")
+@click.option("--test_dir", type=str, default="data_dev", help="Path to test dataset.")
+@click.option("--out_dir", type=str, default="output", help="Path to output tsv files.")
 @click.option("--debug", type=bool, default=False, help="Enable debug mode.")
-def main(training_model_type, debug):
-    """TRAINING_MODEL_TYPE: --unsmoothed|--laplace|--interpolation"""
-    if training_model_type[0] not in ["--unsmoothed", "--laplace", "--interpolation"]:
+def main(training_model_type, train_dir, test_dir, out_dir, debug):
+    """You must select one of the language models --unsmoothed|--laplace|--interpolation"""
+    if not training_model_type:
         print("Unsupported language model.")
         print('Try "main.py --help" for help.')
         sys.exit(1)
 
-    training_model_type = training_model_type[0].replace("--", "")
-
     # train model for each language
     models: Models = []
-    training_files = get_training_files()
+    training_files = get_training_files(train_dir)
     for file in training_files:
         models.append(train_model(training_model_type, file["name"], file["data"]))
 
-    dev_files = get_dev_files()
+    dev_files = get_dev_files(test_dir)
     dev_results = []
     for file in dev_files:
         dev_results.append(compute_lowest_perplexity(file, models))
 
-    save_to_tsv(dev_results, "results_dev_{}".format(training_model_type))
+    save_to_tsv(dev_results, "results_dev_{}".format(training_model_type), output_dir=out_dir)
 
 
 if __name__ == "__main__":

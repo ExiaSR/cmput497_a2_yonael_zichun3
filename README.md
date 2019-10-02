@@ -18,14 +18,24 @@ $ pip install -r requirements.txt
 
 ## How to run
 
-```
-Usage: main.py [OPTIONS] TRAINING_MODEL_TYPE...
+> `$ python main --unsmoothed`
 
-  TRAINING_MODEL_TYPE: --unsmoothed|--laplace|--interpolation
+By default, the program assume the training dataset is located at `data_train`, and the test dataset is located at `data_dev`. See below for advanced usage.
+
+```
+Usage: main.py [OPTIONS]
+
+  You must select one of the language models
+  --unsmoothed|--laplace|--interpolation
 
 Options:
-  --debug BOOLEAN  Enable debug mode.
-  --help           Show this message and exit.
+  --unsmoothed      Use unsmoothed language model.
+  --laplace         Use one-hot model.
+  --interpolation   Use interpolation language model.
+  --train_dir TEXT  Path to training dataset.
+  --test_dir TEXT   Path to test dataset.
+  --debug BOOLEAN   Enable debug mode.
+  --help            Show this message and exit.
 ```
 
 ## Authors
