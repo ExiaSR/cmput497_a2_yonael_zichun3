@@ -1,18 +1,25 @@
 import nltk
+import logging
 import numpy as np
 
+from collections import Counter
 from nltk.lm import NgramCounter
 from nltk.lm import Vocabulary
-from nltk.probability import LaplaceProbDist
+
 from nltk.tokenize.simple import CharTokenizer
+logger = logging.getLogger("cmput497")
+from nltk.probability import LaplaceProbDist
 from nltk.tokenize import sent_tokenize
+
 
 
 class Model(object):
     def __init__(self, name, text):
         self.name = name
         self.text = text
+        self.dist = None
         self.n = None
+        self.text_grams = None
         self.char_tokens = None
         self.dist = None
         self.vocabs = None
@@ -37,48 +44,41 @@ class Model(object):
 class UnsmoothedModel(Model):
     def __init__(self, name, text):
         super().__init__(name, text)
-        self.n = 2
+        self.n = 9
 
     def train(self):
-        self.word_tokens = nltk.tokenize.word_tokenize(self.text)
-        # https://stackoverflow.com/questions/33266956/nltk-package-to-estimate-the-unigram-perplexity/33269399
-        char_grams = nltk.ngrams(
-            self.char_tokens,
-            self.n,
-            pad_right=True,
-            pad_left=True,
-            left_pad_symbol="<s>",
-            right_pad_symbol="</s>",
-        )
-        self.word_tokens.extend(["<s>", "</s>"])
-        self.len = len(self.word_tokens)
-        self.vocabs = Vocabulary(self.word_tokens)
+
+        tokenizer = CharTokenizer()
+        self.char_tokens = tokenizer.tokenize(self.text)
+        char_grams = nltk.ngrams(self.char_tokens, self.n)
+        self.len = len(self.char_tokens)
+        self.vocabs = Vocabulary(self.char_tokens)
         self.dist = nltk.FreqDist(char_grams)
 
+        if self.n > 1:
+            self.char_counter = Counter(nltk.ngrams(self.char_tokens, self.n - 1))
+        else:
+            self.char_counter = Counter(self.char_tokens)
+
+
     def ngram_probaility(self, text_seq: tuple):
-        log_prob = np.log(
-            self.dist.freq(text_seq) / (self.word_tokens.count(text_seq[0]) / self.len)
-        )
-        # print("{} = {} / ({} / {})".format(log_prob, self.dist.freq(text_seq), self.word_tokens.count(text_seq[0]), self.len))
-        # TODO
-        # - How to handle zeor probaility? for now we return 0
+        char_occurence = self.char_counter[text_seq[:-1]]
+        if not char_occurence:
+            return 0.0
+        # Natural log of P(Wn | Wn-1, n-N+1)
+        log_prob = np.log(self.dist.freq(text_seq) / (char_occurence / self.len))
+        logger.debug(text_seq)
+        logger.debug("ln[P('{}'|{}) = {}]".format(text_seq[-1], text_seq[:-1], log_prob))
         return 0.0 if log_prob == float("-inf") else log_prob
 
     def perplexity(self, text):
-        word_tokens = nltk.word_tokenize(text)
-        char_grams = nltk.ngrams(
-            word_tokens,
-            self.n,
-            pad_right=True,
-            pad_left=True,
-            left_pad_symbol="<s>",
-            right_pad_symbol="</s>",
-        )
-        log_prob = 0
 
+        tokenizer = CharTokenizer()
+        char_tokens = tokenizer.tokenize(text)
+        char_grams = nltk.ngrams(char_tokens, self.n)
+        log_prob = 0
         for token in char_grams:
-            if token[0] in self.vocabs:
-                log_prob += self.ngram_probaility(token)
+            log_prob += self.ngram_probaility(token)
 
         return log_prob
 
@@ -124,8 +124,8 @@ def test():
     with open("data_train/udhr-eng.txt.tra", "r") as train_f, open(
         "data_dev/udhr-eng.txt.dev", "r"
     ) as dev_f:
-        data = train_f.read()
-        dev_data = dev_f.read()  # "liberty and the security of person" #dev_f.read()
+        data = train_f.read().replace("\n", "")
+        dev_data = dev_f.read().replace("\n", "")
         model = UnsmoothedModel("udhr-eng.txt.tra", data)
         model.train()
         print(model.perplexity(dev_data))
@@ -133,4 +133,3 @@ def test():
 
 if __name__ == "__main__":
     test()
-
