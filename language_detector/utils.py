@@ -1,10 +1,8 @@
 import sys
 import os
 
-from typing import List
-
 from .models import Model
-from .types import Models
+from .custom_types import Models
 
 def get_training_files(dir="data_train"):
     if not os.path.isdir(dir):
@@ -15,7 +13,7 @@ def get_training_files(dir="data_train"):
     files = []
     for filename in filenames:
         with open(os.path.join(dirpath, filename)) as input_f:
-            data = input_f.read()
+            data = input_f.read().replace("\n", " ")
             files.append({"path": os.path.join(dirpath, filename), "name": filename, "data": data})
     return files
 
@@ -29,7 +27,7 @@ def get_dev_files(dir="data_dev"):
     files = []
     for filename in filenames:
         with open(os.path.join(dirpath, filename)) as input_f:
-            data = input_f.read()
+            data = input_f.read().replace("\n", " ")
             files.append({"path": os.path.join(dirpath, filename), "name": filename, "data": data})
     return files
 
@@ -43,7 +41,7 @@ def get_test_files(dir="data_test"):
     files = []
     for filename in filenames:
         with open(os.path.join(dirpath, filename)) as input_f:
-            data = input_f.read()
+            data = input_f.read().replace("\n", " ")
             files.append({"path": os.path.join(dirpath, filename), "name": filename, "data": data})
     return files
 
@@ -55,7 +53,7 @@ def train_model(model_type, name, text, n=None):
 
     return model
 
-def compute_lowest_perplexity(test, models: Models):
+def compute_lowest_perplexity(test, models):
     recorded_perplexity = []
     for model in models:
         recorded_perplexity.append(model.perplexity(test["data"]))
@@ -67,3 +65,16 @@ def compute_lowest_perplexity(test, models: Models):
         "perplexity": recorded_perplexity[best_model_idx],
         "n": best_model.n,
     }
+
+def compute_perplexity(test, models: Models):
+    recorded_perplexity = []
+    for model in models:
+        recorded_perplexity.append(
+            {
+                "perplexity": model.perplexity(test["data"]),
+                "model_name": model.name,
+                "test_name": test["name"],
+            }
+        )
+
+    return recorded_perplexity
