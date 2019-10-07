@@ -9,6 +9,12 @@ from nltk.tokenize.simple import CharTokenizer
 
 logger = logging.getLogger("cmput497")
 
+from nltk.tokenize.simple import CharTokenizer
+logger = logging.getLogger("cmput497")
+from nltk.probability import LaplaceProbDist
+from nltk.tokenize import sent_tokenize
+
+
 
 class Model(object):
     def __init__(self, name, text):
@@ -80,10 +86,29 @@ class UnsmoothedModel(Model):
 class LaplaceModel(Model):
     def __init__(self, name, text):
         super().__init__(name, text)
-        self.n = 3
+        self.n = 2
 
+    # TODO: Make it using characters not Bigrams
     def train(self):
-        pass
+        # https://www.nltk.org/_modules/nltk/probability.html
+        tokenizer = CharTokenizer()
+        self.char_tokens = tokenizer.tokenize(self.text)
+        sentence = sent_tokenize(self.text)[0]
+        vocabulary = set(self.text.split())
+        cfdist = nltk.ConditionalFreqDist()
+
+        for c in self.char_tokens:
+            condition = len(c)
+            cfdist[condition][c] += 1
+
+        cpd_laplace = nltk.ConditionalProbDist(cfdist, nltk.LaplaceProbDist, bins=len(vocabulary))
+        print([cpd_laplace[a].prob(b) for (a,b) in nltk.bigrams(sentence)])
+        return cpd_laplace
+        # cfd = nltk.FreqDist(nltk.ngrams(corpus, 1))
+        
+
+        # for c in cfd:
+        #     print(c)
 
 
 class InterpolationModel(Model):
