@@ -3,6 +3,9 @@ import csv
 import sys
 import os
 import errno
+import logging
+
+logger = logging.getLogger("cmput497")
 
 from language_detector.models import Model
 from language_detector.utils import (
@@ -11,7 +14,7 @@ from language_detector.utils import (
     train_model,
     compute_lowest_perplexity,
 )
-from language_detector.types import Models
+from language_detector.custom_types import Models
 
 
 # Taken from https://stackoverflow.com/a/600612/119527
@@ -63,6 +66,12 @@ def save_to_tsv(results, filename, output_dir="output"):
 @click.option("--out_dir", type=str, default="output", help="Path to output tsv files.")
 @click.option("--debug", type=bool, default=False, help="Enable debug mode.")
 def main(training_model_type, train_dir, test_dir, out_dir, debug):
+
+    if debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+
     """You must select one of the language models --unsmoothed|--laplace|--interpolation"""
     if not training_model_type:
         print("Unsupported language model.")
@@ -78,7 +87,20 @@ def main(training_model_type, train_dir, test_dir, out_dir, debug):
     dev_files = get_dev_files(test_dir)
     dev_results = []
     for file in dev_files:
+        logger.debug("Testing: {}".format(file["name"]))
         dev_results.append(compute_lowest_perplexity(file, models))
+
+    num_of_mislabeld = 0
+    for record in dev_results:
+        import re
+
+        test_name = re.search(r"(.*)-(.*).txt.(tra|dev|test)", record["test_name"]).group(2)
+        model_name = re.search(r"(.*)-(.*).txt.(tra|dev|test)", record["model_name"]).group(2)
+
+        if test_name != model_name:
+            num_of_mislabeld += 1
+
+    logger.debug("Number of mislabeled test file: {}".format(num_of_mislabeld))
 
     save_to_tsv(dev_results, "results_dev_{}".format(training_model_type), output_dir=out_dir)
 
