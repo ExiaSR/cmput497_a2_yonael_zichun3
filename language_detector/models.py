@@ -15,6 +15,12 @@ from nltk.probability import LaplaceProbDist
 from nltk.tokenize import sent_tokenize
 
 
+from nltk.tokenize.simple import CharTokenizer
+logger = logging.getLogger("cmput497")
+from nltk.probability import LaplaceProbDist
+from nltk.tokenize import sent_tokenize
+
+
 
 class Model(object):
     def __init__(self, name, text):
@@ -61,7 +67,7 @@ class UnsmoothedModel(Model):
             self.char_counter = Counter(nltk.ngrams(self.char_tokens, self.n - 1))
         else:
             self.char_counter = Counter(self.char_tokens)
-
+            
     def ngram_probaility(self, text_seq: tuple):
         char_occurence = self.char_counter[text_seq[:-1]]
         if not char_occurence:
