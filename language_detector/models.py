@@ -91,15 +91,19 @@ class LaplaceModel(Model):
     # TODO: Make it using characters not Bigrams
     def train(self):
         # https://www.nltk.org/_modules/nltk/probability.html
-
-        corpus = self.text.split()
+        tokenizer = CharTokenizer()
+        self.char_tokens = tokenizer.tokenize(self.text)
         sentence = sent_tokenize(self.text)[0]
-        vocabulary = set(corpus)
-        cfd = nltk.ConditionalFreqDist(nltk.bigrams(corpus))
-        
-        cpd_laplace = nltk.ConditionalProbDist(cfd, nltk.LaplaceProbDist, bins=len(vocabulary))
-        print([cpd_laplace[a].prob(b) for (a,b) in nltk.bigrams(sentence)])
+        vocabulary = set(self.text.split())
+        cfdist = nltk.ConditionalFreqDist()
 
+        for c in self.char_tokens:
+            condition = len(c)
+            cfdist[condition][c] += 1
+
+        cpd_laplace = nltk.ConditionalProbDist(cfdist, nltk.LaplaceProbDist, bins=len(vocabulary))
+        print([cpd_laplace[a].prob(b) for (a,b) in nltk.bigrams(sentence)])
+        return cpd_laplace
         # cfd = nltk.FreqDist(nltk.ngrams(corpus, 1))
         
 
