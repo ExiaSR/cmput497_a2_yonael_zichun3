@@ -20,7 +20,7 @@ def explore_model(model_type="unsmoothed"):
     training_files = get_training_files()
     dev_files = get_dev_files()
 
-    n_list = range(1, 20)
+    n_list = range(3, 8)
 
     results = {}
     for n in n_list:
@@ -42,7 +42,7 @@ def explore_model(model_type="unsmoothed"):
                 num_of_mislabeld += 1
 
         report[n] = num_of_mislabeld
-        print("N: {}, Accuracy: {:.2f}%".format(n, 100.0 * (1 - num_of_mislabeld / len(result))))
+        print("N: {}, Accuracy: {:.6f}%".format(n, 100.0 * (1 - num_of_mislabeld / len(result))))
 
     best_n = min(report, key=report.get)
     print("\nn = {} for {} language model produced the best accuracy\n".format(best_n, model_type))
@@ -82,6 +82,6 @@ def explore_model(model_type="unsmoothed"):
 
 
 if __name__ == "__main__":
-    model_types = ["unsmoothed"]
+    model_types = ["laplace"]
     for each in model_types:
         explore_model(each)
