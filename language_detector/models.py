@@ -51,7 +51,7 @@ class UnsmoothedModel(Model):
         char_tokens = tokenizer.tokenize(self.text)
         vocabs = Vocabulary(char_tokens, unk_cutoff=self.unk_threshold)
         char_tokens = [token for token in char_tokens if token in vocabs]
-        del vocabs # we dont need it anymore
+        del vocabs  # we dont need it anymore
         char_grams = nltk.ngrams(char_tokens, self.n)
         self.len = len(char_tokens)
         self.vocabs = Vocabulary(char_tokens)
@@ -68,35 +68,35 @@ class UnsmoothedModel(Model):
         # for unigram, the numerator itself is already P(W), so just use 1 for denominator
         denominator = char_occurence / self.len if self.n > 1 else 1
         log_prob = np.log2(numerator / denominator)
-        logger.debug("gram: {}, numerator: C{}={}, denominator: C{}={}".format(text_seq, text_seq, numerator, text_seq[:-1], denominator))
+        logger.debug(
+            "gram: {}, numerator: C{}={}, denominator: C{}={}".format(
+                text_seq, text_seq, numerator, text_seq[:-1], denominator
+            )
+        )
         logger.debug("ln[P('{}'|{}) = {}]".format(text_seq[-1], text_seq[:-1], log_prob))
         return log_prob
 
     def perplexity(self, text):
         tokenizer = CharTokenizer()
         # char_tokens = tokenizer.tokenize(text)
-        char_tokens = [c if c in self.vocabs else "<UNK>" for c in tokenizer.tokenize(text) ]
+        char_tokens = [c if c in self.vocabs else "<UNK>" for c in tokenizer.tokenize(text)]
         char_grams = nltk.ngrams(char_tokens, self.n)
         log_prob = 0
         for token in char_grams:
             log_prob += self.ngram_probaility(token)
 
         # 2 ^ (- 1/n * Sum(logp(w)))
-        return np.power(2, - (1 / len(char_tokens) * log_prob))
+        return np.power(2, -(1 / len(char_tokens) * log_prob))
 
 
 class LaplaceModel(Model):
     def __init__(self, name, text):
         super().__init__(name, text)
-        self.n = 4
-       #self.unk_threshold = 1
+        self.n = 3
 
     def train(self):
         tokenizer = CharTokenizer()
         char_tokens = tokenizer.tokenize(self.text)
-        # vocabs = Vocabulary(char_tokens)
-        # char_tokens = [token for token in char_tokens if token in vocabs]
-        # del vocabs # we dont need it anymore
         char_grams = nltk.ngrams(char_tokens, self.n)
         self.len = len(char_tokens)
         self.vocabs = Vocabulary(char_tokens)
@@ -110,25 +110,28 @@ class LaplaceModel(Model):
     def ngram_probaility(self, text_seq: tuple):
         char_occurence = self.char_counter[text_seq[:-1]]
         numerator = self.dist[text_seq] + 1
-        # for unigram, the numerator itself is already P(W), so just use 1 for denominator
         denominator = char_occurence / self.len if self.n > 1 else self.len
         denominator += len(self.vocabs)
         log_prob = np.log2(numerator / denominator)
-        logger.debug("gram: {}, numerator: C{}={}, denominator: C{}={}".format(text_seq, text_seq, numerator, text_seq[:-1], denominator))
+        logger.debug(
+            "gram: {}, numerator: C{}={}, denominator: C{}={}".format(
+                text_seq, text_seq, numerator, text_seq[:-1], denominator
+            )
+        )
         logger.debug("ln[P('{}'|{}) = {}]".format(text_seq[-1], text_seq[:-1], log_prob))
         return log_prob
 
     def perplexity(self, text):
         tokenizer = CharTokenizer()
         char_tokens = tokenizer.tokenize(text)
-        # char_tokens = [c if c in self.vocabs else "<UNK>" for c in tokenizer.tokenize(text) ]
         char_grams = nltk.ngrams(char_tokens, self.n)
         log_prob = 0
         for token in char_grams:
             log_prob += self.ngram_probaility(token)
 
         # 2 ^ (- 1/n * Sum(logp(w)))
-        return np.power(2, - (1 / len(char_tokens) * log_prob))
+        return np.power(2, -(1 / len(char_tokens) * log_prob))
+
 
 class InterpolationModel(Model):
     def __init__(self, name, text):
