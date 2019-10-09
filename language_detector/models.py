@@ -6,20 +6,10 @@ from collections import Counter
 from nltk.lm import NgramCounter
 from nltk.lm import Vocabulary
 from nltk.tokenize.simple import CharTokenizer
-
-logger = logging.getLogger("cmput497")
-
-from nltk.tokenize.simple import CharTokenizer
-logger = logging.getLogger("cmput497")
 from nltk.probability import LaplaceProbDist
 from nltk.tokenize import sent_tokenize
 
-
-from nltk.tokenize.simple import CharTokenizer
 logger = logging.getLogger("cmput497")
-from nltk.probability import LaplaceProbDist
-from nltk.tokenize import sent_tokenize
-
 
 
 class Model(object):
@@ -67,7 +57,7 @@ class UnsmoothedModel(Model):
             self.char_counter = Counter(nltk.ngrams(self.char_tokens, self.n - 1))
         else:
             self.char_counter = Counter(self.char_tokens)
-            
+
     def ngram_probaility(self, text_seq: tuple):
         char_occurence = self.char_counter[text_seq[:-1]]
         if not char_occurence:
@@ -108,10 +98,9 @@ class LaplaceModel(Model):
             cfdist[condition][c] += 1
 
         cpd_laplace = nltk.ConditionalProbDist(cfdist, nltk.LaplaceProbDist, bins=len(vocabulary))
-        print([cpd_laplace[a].prob(b) for (a,b) in nltk.bigrams(sentence)])
+        print([cpd_laplace[a].prob(b) for (a, b) in nltk.bigrams(sentence)])
         return cpd_laplace
         # cfd = nltk.FreqDist(nltk.ngrams(corpus, 1))
-        
 
         # for c in cfd:
         #     print(c)
