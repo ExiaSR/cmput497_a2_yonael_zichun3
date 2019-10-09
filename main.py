@@ -100,7 +100,7 @@ def main(training_model_type, train_dir, test_dir, out_dir, debug):
         if test_name != model_name:
             num_of_mislabeld += 1
 
-    logger.debug("Number of mislabeled test file: {}".format(num_of_mislabeld))
+    logger.info("Number of mislabeled test file: {}".format(num_of_mislabeld))
 
     save_to_tsv(dev_results, "results_dev_{}".format(training_model_type), output_dir=out_dir)
 
