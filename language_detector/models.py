@@ -137,8 +137,8 @@ class InterpolationModel(Model):
     def __init__(self, name, text):
         super().__init__(name, text)
         self.n = 1
-        self.multi_grams = [None for i in range(10)]
-        self.multi_grams_dist = [None for i in range(10)]
+        self.multi_grams = [None for i in range(self.n)]
+        self.multi_grams_dist = [None for i in range(self.n)]
         self.weights = []
 
     def __str__(self):
