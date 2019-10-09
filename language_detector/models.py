@@ -136,21 +136,98 @@ class LaplaceModel(Model):
 class InterpolationModel(Model):
     def __init__(self, name, text):
         super().__init__(name, text)
-        self.n = 3
+        self.n = 1
+        self.multi_grams = [None for i in range(self.n)]
+        self.multi_grams_dist = [None for i in range(self.n)]
+        self.weights = []
+
+    def __str__(self):
+        return "InterpolationModel(name={}, n={}, weights={})".format(
+            self.name, self.n, self.weights
+        )
 
     def train(self):
-        pass
+        tokenizer = CharTokenizer()
+        char_tokens = tokenizer.tokenize(self.text)
+        self.len = len(char_tokens)
+        for n in range(1, self.n + 1):
+            self.multi_grams[n - 1] = nltk.ngrams(char_tokens, n)
+            self.multi_grams_dist[n - 1] = nltk.FreqDist(nltk.ngrams(char_tokens, n))
+        self.deleted_interpolation()
+
+    def deleted_interpolation(self):
+        n = self.n
+        weights = [0 for i in range(self.n)]
+        for gram in self.multi_grams[n - 1]:
+            if self.multi_grams_dist[n - 1][gram] > 0:
+                tmp = [0 for i in range(self.n)]
+                cnt = len(gram) - 2  # magic number to help with list slicing for denominator
+                for i in range(1, n + 1):
+                    numerator = self.multi_grams_dist[i - 1][gram[-i:]] - 1  # Count(t1, t2, t3) - 1
+                    denominator = (
+                        self.len - 1 if i == 1 else self.multi_grams_dist[i - 2][gram[cnt:-1]] - 1
+                    )  # Count(t1, t2) - 1
+
+                    logger.debug(
+                        "n: {}, gram: {}, numerator: C{}={}, denominator: {}={}".format(
+                            i,
+                            gram,
+                            gram[-i:],
+                            numerator,
+                            "C{}".format(gram[cnt:-1]) if i > 1 else "N - 1",
+                            denominator,
+                        )
+                    )
+                    if i > 1:
+                        cnt -= 1
+                    tmp[i - 1] = float(numerator) / float(denominator) if denominator > 0 else 0.0
+                # get the index of max "value"
+                idx = tmp.index(max(tmp))
+                # increment lambda_idx by C(t_i, t_i-n)
+                weights[idx] += self.multi_grams_dist[n - 1][gram]
+        self.weights = [np.divide(w, np.sum(weights)) for w in weights]
+
+    def ngram_probaility(self, text_seq: tuple, n: int, cnt: int):
+        try:
+            weight = self.weights[n]
+            numerator = self.multi_grams_dist[n][text_seq[-(n + 1) :]]
+            denominator = self.len if n == 0 else self.multi_grams_dist[n - 2][text_seq[cnt:-1]]
+            logger.debug(
+                "n: {}, gram: {}, numerator: C{} = {}, denominator: C{} = {}".format(
+                    n + 1, text_seq, text_seq[-(n + 1) :], numerator, text_seq[cnt:-1], denominator
+                )
+            )
+            return weight * float(numerator) / float(denominator) if denominator > 0 else 0.0
+        except Exception:
+            return 0.0
+
+    def perplexity(self, text):
+        tokenizer = CharTokenizer()
+        char_tokens = tokenizer.tokenize(text)
+        char_grams = nltk.ngrams(char_tokens, self.n)
+        log_prob = 0
+        for token in char_grams:
+            # calculate weighted probaility
+            cnt = len(token) - 2
+            prob = 0.0
+            for n in range(self.n):
+                prob += self.ngram_probaility(token, n, cnt)
+                if n > 0:
+                    cnt -= 1
+            log_prob += np.log2(prob)
+        return np.power(2, -(1 / len(char_tokens) * log_prob))
 
 
 def test():
     with open("data_train/udhr-eng.txt.tra", "r") as train_f, open(
-        "data_dev/udhr-eng.txt.dev", "r"
+        "data_dev/udhr-kin.txt.dev", "r"
     ) as dev_f:
         data = train_f.read().replace("\n", "")
         dev_data = dev_f.read().replace("\n", "")
-        model = UnsmoothedModel("udhr-eng.txt.tra", data)
+        model = InterpolationModel("udhr-eng.txt.tra", data)
         model.train()
         print(model.perplexity(dev_data))
+        print(model)
 
 
 if __name__ == "__main__":

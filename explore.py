@@ -20,7 +20,7 @@ def explore_model(model_type="unsmoothed"):
     training_files = get_training_files()
     dev_files = get_dev_files()
 
-    n_list = range(3, 8)
+    n_list = range(1, 9)
 
     results = {}
     for n in n_list:
@@ -82,6 +82,6 @@ def explore_model(model_type="unsmoothed"):
 
 
 if __name__ == "__main__":
-    model_types = ["laplace"]
+    model_types = ["interpolation"]
     for each in model_types:
         explore_model(each)
