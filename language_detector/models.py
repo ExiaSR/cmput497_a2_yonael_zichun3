@@ -88,29 +88,47 @@ class UnsmoothedModel(Model):
 class LaplaceModel(Model):
     def __init__(self, name, text):
         super().__init__(name, text)
-        self.n = 2
+        self.n = 4
+       #self.unk_threshold = 1
 
-    # TODO: Make it using characters not Bigrams
     def train(self):
-        # https://www.nltk.org/_modules/nltk/probability.html
         tokenizer = CharTokenizer()
-        self.char_tokens = tokenizer.tokenize(self.text)
-        sentence = sent_tokenize(self.text)[0]
-        vocabulary = set(self.text.split())
-        cfdist = nltk.ConditionalFreqDist()
+        char_tokens = tokenizer.tokenize(self.text)
+        # vocabs = Vocabulary(char_tokens)
+        # char_tokens = [token for token in char_tokens if token in vocabs]
+        # del vocabs # we dont need it anymore
+        char_grams = nltk.ngrams(char_tokens, self.n)
+        self.len = len(char_tokens)
+        self.vocabs = Vocabulary(char_tokens)
+        self.dist = nltk.FreqDist(char_grams)
 
-        for c in self.char_tokens:
-            condition = len(c)
-            cfdist[condition][c] += 1
+        if self.n > 1:
+            self.char_counter = Counter(nltk.ngrams(char_tokens, self.n - 1))
+        else:
+            self.char_counter = Counter(char_tokens)
 
-        cpd_laplace = nltk.ConditionalProbDist(cfdist, nltk.LaplaceProbDist, bins=len(vocabulary))
-        print([cpd_laplace[a].prob(b) for (a, b) in nltk.bigrams(sentence)])
-        return cpd_laplace
-        # cfd = nltk.FreqDist(nltk.ngrams(corpus, 1))
+    def ngram_probaility(self, text_seq: tuple):
+        char_occurence = self.char_counter[text_seq[:-1]]
+        numerator = self.dist[text_seq] + 1
+        # for unigram, the numerator itself is already P(W), so just use 1 for denominator
+        denominator = char_occurence / self.len if self.n > 1 else self.len
+        denominator += len(self.vocabs)
+        log_prob = np.log2(numerator / denominator)
+        logger.debug("gram: {}, numerator: C{}={}, denominator: C{}={}".format(text_seq, text_seq, numerator, text_seq[:-1], denominator))
+        logger.debug("ln[P('{}'|{}) = {}]".format(text_seq[-1], text_seq[:-1], log_prob))
+        return log_prob
 
-        # for c in cfd:
-        #     print(c)
+    def perplexity(self, text):
+        tokenizer = CharTokenizer()
+        char_tokens = tokenizer.tokenize(text)
+        # char_tokens = [c if c in self.vocabs else "<UNK>" for c in tokenizer.tokenize(text) ]
+        char_grams = nltk.ngrams(char_tokens, self.n)
+        log_prob = 0
+        for token in char_grams:
+            log_prob += self.ngram_probaility(token)
 
+        # 2 ^ (- 1/n * Sum(logp(w)))
+        return np.power(2, - (1 / len(char_tokens) * log_prob))
 
 class InterpolationModel(Model):
     def __init__(self, name, text):
