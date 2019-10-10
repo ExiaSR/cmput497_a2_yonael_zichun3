@@ -35,8 +35,8 @@ def explore_model(model_type="unsmoothed"):
     for n, result in results.items():
         num_of_mislabeld = 0
         for record in result:
-            test_name = re.search(r"(.*)-(.*).txt.(tra|dev|test)", record["test_name"]).group(2)
-            model_name = re.search(r"(.*)-(.*).txt.(tra|dev|test)", record["model_name"]).group(2)
+            test_name = re.search(r"(.*)-(.*).txt.(tra|dev|tes)", record["test_name"]).group(2)
+            model_name = re.search(r"(.*)-(.*).txt.(tra|dev|tes)", record["model_name"]).group(2)
 
             if test_name != model_name:
                 num_of_mislabeld += 1

@@ -38,7 +38,7 @@ def save_to_tsv(results, filename, output_dir="output"):
     """
     Archive language classification output into TSV file
     """
-    with safe_open_w("{}/{}.tsv".format(output_dir, filename), "wt") as output_file:
+    with safe_open_w(os.path.join(output_dir, "{}.tsv".format(filename)), "wt") as output_file:
         tsv_writer = csv.writer(output_file, delimiter="\t")
         rows = [
             [result["test_name"], result["model_name"], result["perplexity"], result["n"]]
@@ -94,8 +94,8 @@ def main(training_model_type, train_dir, test_dir, out_dir, debug):
     for record in dev_results:
         import re
 
-        test_name = re.search(r"(.*)-(.*).txt.(tra|dev|test)", record["test_name"]).group(2)
-        model_name = re.search(r"(.*)-(.*).txt.(tra|dev|test)", record["model_name"]).group(2)
+        test_name = re.search(r"(.*)-(.*).txt.(tra|dev|tes)", record["test_name"]).group(2)
+        model_name = re.search(r"(.*)-(.*).txt.(tra|dev|tes)", record["model_name"]).group(2)
 
         if test_name != model_name:
             num_of_mislabeld += 1

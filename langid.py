@@ -31,7 +31,7 @@ def save_to_tsv(results, filename, output_dir="output"):
     """
     Archive language classification output into TSV file
     """
-    with safe_open_w("{}/{}.tsv".format(output_dir, filename), "wt") as output_file:
+    with safe_open_w(os.path.join(output_dir, "{}.tsv".format(filename)), "wt") as output_file:
         tsv_writer = csv.writer(output_file, delimiter="\t")
         rows = [
             [result["test_name"], result["model_name"], result["perplexity"], result["n"]]
@@ -42,8 +42,8 @@ def save_to_tsv(results, filename, output_dir="output"):
 
 def explore_model(model_type="unsmoothed"):
     training_files = get_training_files()
-    dev_files = get_dev_files()
-    test_files = get_test_files()
+    dev_files = get_test_files("data_dev")
+    test_files = get_test_files("data_test")
 
     models = [
         train_model(model_type, name=file["name"], text=file["data"]) for file in training_files
@@ -57,6 +57,6 @@ def explore_model(model_type="unsmoothed"):
 
 if __name__ == "__main__":
     # TODO - add other language models to the list once they are done.
-    model_types = ["unsmoothed"]
+    model_types = ["unsmoothed", "laplace", "interpolation"]
     for each in model_types:
         explore_model(each)
