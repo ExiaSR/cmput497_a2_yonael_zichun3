@@ -2,7 +2,6 @@ import sys
 import os
 
 from .models import Model
-from .custom_types import Models
 
 def get_training_files(dir="data_train"):
     if not os.path.isdir(dir):
@@ -17,27 +16,12 @@ def get_training_files(dir="data_train"):
             files.append({"path": os.path.join(dirpath, filename), "name": filename, "data": data})
     return files
 
-
-def get_dev_files(dir="data_dev"):
+def get_test_files(dir="data_dev"):
     if not os.path.isdir(dir):
         raise Exception("Directory \"{}\" does not exist.".format(dir))
 
     (dirpath, _, filenames) = next(os.walk(dir))
-    filenames = sorted([filename for filename in filenames if filename.endswith("txt.dev")])
-    files = []
-    for filename in filenames:
-        with open(os.path.join(dirpath, filename)) as input_f:
-            data = input_f.read().replace("\n", " ")
-            files.append({"path": os.path.join(dirpath, filename), "name": filename, "data": data})
-    return files
-
-
-def get_test_files(dir="data_test"):
-    if not os.path.isdir(dir):
-        raise Exception("Directory \"{}\" does not exist.".format(dir))
-
-    (dirpath, _, filenames) = next(os.walk(dir))
-    filenames = sorted([filename for filename in filenames if filename.endswith("txt.test")])
+    filenames = sorted([filename for filename in filenames if filename.endswith("txt.tes") or filename.endswith("txt.dev")])
     files = []
     for filename in filenames:
         with open(os.path.join(dirpath, filename)) as input_f:
@@ -66,7 +50,7 @@ def compute_lowest_perplexity(test, models):
         "n": best_model.n,
     }
 
-def compute_perplexity(test, models: Models):
+def compute_perplexity(test, models):
     recorded_perplexity = []
     for model in models:
         recorded_perplexity.append(

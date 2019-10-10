@@ -26,7 +26,7 @@ $ pip install -r requirements.txt
 
 By default, the program assume the training dataset is located at `data_train`, and the test dataset is located at `data_dev`. See below for advanced usage.
 
-Moreover, we assume all dataset files follow such naming convention, `(.*)-(.*).txt.(tra|dev|test)`.
+Moreover, we assume all dataset files follow such naming convention, `(.*)-(.*).txt.(tra|dev|tes)`.
 
 ```
 Usage: main.py [OPTIONS]
