@@ -1,5 +1,7 @@
 # cmput497_a2_yonael_zichun3
 
+In this assginment, we implemented varies n-grams language models, including unsmoothed, Laplace smoothing and deleted interpolation and use the models to compute the perplexity of testing dataset against the training corpus.
+
 ## Prerequisites
 
 -   Python 3.7+
@@ -18,7 +20,9 @@ $ pip install -r requirements.txt
 
 ## How to run
 
-> `$ python main --unsmoothed`
+> `$ python main.py --unsmoothed`
+
+> `$ python main.py --laplace --train_dir=custom_path_to_dataset --debug=True`
 
 By default, the program assume the training dataset is located at `data_train`, and the test dataset is located at `data_dev`. See below for advanced usage.
 
