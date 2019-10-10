@@ -14,7 +14,7 @@ from language_detector.utils import (
     train_model,
     compute_lowest_perplexity,
 )
-from language_detector.custom_types import Models
+# from language_detector.custom_types import Models
 
 
 # Taken from https://stackoverflow.com/a/600612/119527
@@ -79,7 +79,7 @@ def main(training_model_type, train_dir, test_dir, out_dir, debug):
         sys.exit(1)
 
     # train model for each language
-    models: Models = []
+    models = []
     training_files = get_training_files(train_dir)
     for file in training_files:
         models.append(train_model(training_model_type, file["name"], file["data"]))

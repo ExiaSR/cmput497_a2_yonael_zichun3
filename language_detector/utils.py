@@ -2,7 +2,6 @@ import sys
 import os
 
 from .models import Model
-from .custom_types import Models
 
 def get_training_files(dir="data_train"):
     if not os.path.isdir(dir):
@@ -51,7 +50,7 @@ def compute_lowest_perplexity(test, models):
         "n": best_model.n,
     }
 
-def compute_perplexity(test, models: Models):
+def compute_perplexity(test, models):
     recorded_perplexity = []
     for model in models:
         recorded_perplexity.append(

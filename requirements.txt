@@ -1,8 +1,4 @@
-appdirs==1.4.3
-attrs==19.1.0
-black==19.3b0
 Click==7.0
 nltk==3.4.5
 numpy==1.17.2
 six==1.12.0
-toml==0.10.0
