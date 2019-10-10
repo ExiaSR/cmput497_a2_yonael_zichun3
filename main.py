@@ -9,7 +9,7 @@ logger = logging.getLogger("cmput497")
 
 from language_detector.models import Model
 from language_detector.utils import (
-    get_dev_files,
+    get_test_files,
     get_training_files,
     train_model,
     compute_lowest_perplexity,
@@ -38,7 +38,7 @@ def save_to_tsv(results, filename, output_dir="output"):
     """
     Archive language classification output into TSV file
     """
-    with safe_open_w(os.path.join(output_dir, "{}.tsv".format(filename)), "wt") as output_file:
+    with safe_open_w(os.path.join(output_dir, "{}.txt".format(filename)), "wt") as output_file:
         tsv_writer = csv.writer(output_file, delimiter="\t")
         rows = [
             [result["test_name"], result["model_name"], result["perplexity"], result["n"]]
@@ -84,7 +84,7 @@ def main(training_model_type, train_dir, test_dir, out_dir, debug):
     for file in training_files:
         models.append(train_model(training_model_type, file["name"], file["data"]))
 
-    dev_files = get_dev_files(test_dir)
+    dev_files = get_test_files(test_dir)
     dev_results = []
     for file in dev_files:
         logger.debug("Testing: {}".format(file["name"]))
@@ -102,7 +102,7 @@ def main(training_model_type, train_dir, test_dir, out_dir, debug):
 
     logger.info("Number of mislabeled test file: {}".format(num_of_mislabeld))
 
-    save_to_tsv(dev_results, "results_dev_{}".format(training_model_type), output_dir=out_dir)
+    save_to_tsv(dev_results, "results_dev_{}".format(training_model_type if training_model_type != "laplace" else "add-one"), output_dir=out_dir)
 
 
 if __name__ == "__main__":

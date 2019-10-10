@@ -31,7 +31,7 @@ def save_to_tsv(results, filename, output_dir="output"):
     """
     Archive language classification output into TSV file
     """
-    with safe_open_w(os.path.join(output_dir, "{}.tsv".format(filename)), "wt") as output_file:
+    with safe_open_w(os.path.join(output_dir, "{}.txt".format(filename)), "wt") as output_file:
         tsv_writer = csv.writer(output_file, delimiter="\t")
         rows = [
             [result["test_name"], result["model_name"], result["perplexity"], result["n"]]
@@ -51,12 +51,11 @@ def explore_model(model_type="unsmoothed"):
     dev_results = [compute_lowest_perplexity(file, models) for file in dev_files]
     test_results = [compute_lowest_perplexity(file, models) for file in test_files]
 
-    save_to_tsv(dev_results, "results_dev_{}".format(model_type))
-    save_to_tsv(test_results, "results_test_{}".format(model_type))
+    save_to_tsv(dev_results, "results_dev_{}".format(model_type if model_type != "laplace" else "add-one"))
+    save_to_tsv(test_results, "results_test_{}".format(model_type if model_type != "laplace" else "add-one"))
 
 
 if __name__ == "__main__":
-    # TODO - add other language models to the list once they are done.
     model_types = ["unsmoothed", "laplace", "interpolation"]
     for each in model_types:
         explore_model(each)
