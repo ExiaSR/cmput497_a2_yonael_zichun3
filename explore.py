@@ -18,9 +18,9 @@ def get_file_by_name(name, files):
 
 def explore_model(model_type="unsmoothed"):
     training_files = get_training_files()
-    dev_files = get_dev_files()
+    dev_files = get_test_files("data_dev")
 
-    n_list = range(1, 9)
+    n_list = range(3, 4)
 
     results = {}
     for n in n_list:
@@ -47,41 +47,41 @@ def explore_model(model_type="unsmoothed"):
     best_n = min(report, key=report.get)
     print("\nn = {} for {} language model produced the best accuracy\n".format(best_n, model_type))
 
-    # models = [
-    #     train_model(model_type, name=file["name"], text=file["data"], n=best_n)
-    #     for file in training_files
-    # ]
-    # result = [compute_lowest_perplexity(file, models) for file in dev_files]
+    models = [
+        train_model(model_type, name=file["name"], text=file["data"], n=best_n)
+        for file in training_files
+    ]
+    result = [compute_lowest_perplexity(file, models) for file in dev_files]
 
-    # error_tests = []
-    # print("Error test cases:")
-    # for record in result:
-    #     test_name = re.search(r"(.*)-(.*).txt.(tra|dev|test)", record["test_name"]).group(2)
-    #     model_name = re.search(r"(.*)-(.*).txt.(tra|dev|test)", record["model_name"]).group(2)
+    error_tests = []
+    print("Error test cases:")
+    for record in result:
+        test_name = re.search(r"(.*)-(.*).txt.(tra|dev|tes)", record["test_name"]).group(2)
+        model_name = re.search(r"(.*)-(.*).txt.(tra|dev|tes)", record["model_name"]).group(2)
 
-    #     if test_name != model_name:
-    #         error_tests.append(
-    #             {"test_name": record["test_name"], "model_name": record["model_name"]}
-    #         )
-    #         print("Test: {} Label: {}".format(record["test_name"], record["model_name"]))
+        if test_name != model_name:
+            error_tests.append(
+                {"test_name": record["test_name"], "model_name": record["model_name"]}
+            )
+            print("Test: {} Label: {}".format(record["test_name"], record["model_name"]))
 
-    # print("\n")
+    print("\n")
 
-    # for each in error_tests:
-    #     dev_file = get_file_by_name(each["test_name"], dev_files)
-    #     print("Test: {}".format(dev_file["name"]))
-    #     results = sorted(compute_perplexity(dev_file, models), key=lambda i: i["perplexity"])
-    #     for result in results:
-    #         if result["perplexity"]:
-    #             print(
-    #                 "model: {}, perplexity: {}".format(result["model_name"], result["perplexity"])
-    #             )
-    #     print("\n")
+    for each in error_tests:
+        dev_file = get_file_by_name(each["test_name"], dev_files)
+        print("Test: {}".format(dev_file["name"]))
+        results = sorted(compute_perplexity(dev_file, models), key=lambda i: i["perplexity"])
+        for result in results:
+            if result["perplexity"]:
+                print(
+                    "model: {}, perplexity: {}".format(result["model_name"], result["perplexity"])
+                )
+        print("\n")
 
     print("=================================\n")
 
 
 if __name__ == "__main__":
-    model_types = ["interpolation"]
+    model_types = ["laplace"]
     for each in model_types:
         explore_model(each)
