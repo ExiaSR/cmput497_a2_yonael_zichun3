@@ -184,18 +184,14 @@ class InterpolationModel(Model):
 
         self.weights = [np.divide(w, np.sum(weights)) for w in reversed(weights)]
 
-    def ngram_probaility(self, text_seq: tuple, n: int, cnt: int):
+    def ngram_probaility(self, text_seq: tuple):
+        n = len(text_seq)
         try:
-            weight = self.weights[n]
-            numerator = self.multi_grams[n+1][text_seq[-(n + 1) :]]
-            denominator = self.len if n == 0 else self.multi_grams[n - 1][text_seq[cnt:-1]]
-            logger.debug(
-                "n: {}, gram: {}, numerator: C{} = {}, denominator: C{} = {}".format(
-                    n + 1, text_seq, text_seq[-(n + 1) :], numerator, text_seq[cnt:-1], denominator
-                )
-            )
+            weight = self.weights[n-1]
+            numerator = self.multi_grams[n][text_seq]
+            denominator = self.len if n == 1 else self.multi_grams[n-1][text_seq[:-1]]
             return weight * float(numerator) / float(denominator) if denominator > 0 else 0.0
-        except Exception:
+        except Exception as e:
             return 0.0
 
     def perplexity(self, text):
@@ -205,11 +201,12 @@ class InterpolationModel(Model):
         log_prob = 0
         for token in char_grams:
             # calculate weighted probaility
-            cnt = len(token) - 2 # magic number to help with index slicing for denominator
             prob = 0.0
+            current_token = deepcopy(token)
             for n in range(self.n):
                 # accumulate weighted probabilites for each n-gram
-                prob += self.ngram_probaility(token, n, cnt)
+                prob += self.ngram_probaility(current_token)
+                current_token = current_token[1:]
                 if n > 0:
                     cnt -= 1
             # log2 of the probability of current character tokens
@@ -218,7 +215,7 @@ class InterpolationModel(Model):
 
 
 def test():
-    with open("data_train/udhr-hea.txt.tra", "r") as train_f, open(
+    with open("data_train/udhr-eng.txt.tra", "r") as train_f, open(
         "data_dev/udhr-eng.txt.dev", "r"
     ) as dev_f:
         data = train_f.read().replace("\n", "")
