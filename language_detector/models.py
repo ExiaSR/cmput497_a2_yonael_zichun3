@@ -207,8 +207,6 @@ class InterpolationModel(Model):
                 # accumulate weighted probabilites for each n-gram
                 prob += self.ngram_probaility(current_token)
                 current_token = current_token[1:]
-                if n > 0:
-                    cnt -= 1
             # log2 of the probability of current character tokens
             log_prob += np.log2(prob)
         return np.power(2, -(1 / len(char_tokens) * log_prob))
