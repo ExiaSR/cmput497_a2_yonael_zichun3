@@ -136,7 +136,7 @@ class LaplaceModel(Model):
 class InterpolationModel(Model):
     def __init__(self, name, text):
         super().__init__(name, text)
-        self.n = 3
+        self.n = 8
         self.multi_grams = [None for i in range(self.n+1)]
         self.multi_grams_dist = [None for i in range(self.n+1)]
         self.weights = []
